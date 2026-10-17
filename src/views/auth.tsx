@@ -31,7 +31,7 @@ const Card: FC<{ title: string; sub?: string; error?: string; success?: Child; c
   </Layout>
 );
 
-export const LoginPage: FC<{ error?: string; notice?: string; email?: string; allowSignup: boolean }> = (p) => (
+export const LoginPage: FC<{ error?: string; notice?: string; email?: string }> = (p) => (
   <Card title="ログイン" error={p.error} success={p.notice}>
     <form method="post" action="/login" class="space-y-5">
       <div>
@@ -46,31 +46,8 @@ export const LoginPage: FC<{ error?: string; notice?: string; email?: string; al
     </form>
     <div class="mt-6 flex items-center justify-between text-[11px]">
       <a href="/forgot" class="text-slate-400 hover:text-emerald-400 transition">パスワードをお忘れの方</a>
-      {p.allowSignup ? (
-        <a href="/signup" class="text-emerald-400 hover:text-emerald-300 font-bold transition">無料アカウント作成 →</a>
-      ) : (
-        <a href="/#contact" class="text-slate-400 hover:text-emerald-400 transition">利用申し込み</a>
-      )}
+      <a href="/#contact" class="text-slate-400 hover:text-emerald-400 transition">お申し込み・お問い合わせ</a>
     </div>
-  </Card>
-);
-
-export const SignupPage: FC<{ error?: string; email?: string }> = (p) => (
-  <Card title="無料アカウント作成" sub="1ドメイン・1日1回の監視をすぐにご利用いただけます" error={p.error}>
-    <form method="post" action="/signup" class="space-y-5">
-      <div>
-        <label class={label} for="email">メールアドレス</label>
-        <input id="email" type="email" name="email" required autocomplete="email" value={p.email ?? ''} placeholder="marketing@example.com" class={input} />
-      </div>
-      <div>
-        <label class={label} for="password">パスワード（8文字以上）</label>
-        <input id="password" type="password" name="password" required minlength={8} autocomplete="new-password" class={input} />
-      </div>
-      <button type="submit" class={primaryBtn}>フリープランでアカウント作成</button>
-    </form>
-    <p class="mt-6 text-center text-[11px] text-slate-500">
-      すでにアカウントをお持ちの方は <a href="/login" class="text-emerald-400 hover:underline">ログイン</a>
-    </p>
   </Card>
 );
 

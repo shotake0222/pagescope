@@ -1,5 +1,6 @@
 import type { FC } from 'hono/jsx';
 import { raw } from 'hono/html';
+import { describeInterval, PLAN_IDS, PLANS } from '../lib/plans';
 import { Layout } from './layout';
 
 const DESC =
@@ -23,8 +24,7 @@ const Brand: FC<{ big?: boolean }> = ({ big }) => (
   </span>
 );
 
-export const LandingPage: FC<{ appUrl: string; allowSignup: boolean; formspreeId: string; loggedIn: boolean; sent?: boolean }> = (p) => {
-  const signupHref = p.allowSignup ? '/signup' : '#contact';
+export const LandingPage: FC<{ appUrl: string; formspreeId: string; loggedIn: boolean; sent?: boolean }> = (p) => {
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
@@ -76,8 +76,8 @@ export const LandingPage: FC<{ appUrl: string; allowSignup: boolean; formspreeId
               ) : (
                 <>
                   <a href="/login" class="text-xs sm:text-sm text-slate-300 hover:text-white transition">ログイン</a>
-                  <a href={signupHref} class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs sm:text-sm font-bold py-1.5 px-3 sm:py-2 sm:px-4 rounded-xl transition shadow-md">
-                    {p.allowSignup ? '無料登録' : '利用申し込み'}
+                  <a href="#contact" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs sm:text-sm font-bold py-1.5 px-3 sm:py-2 sm:px-4 rounded-xl transition shadow-md">
+                    お申し込み
                   </a>
                 </>
               )}
@@ -110,8 +110,8 @@ export const LandingPage: FC<{ appUrl: string; allowSignup: boolean; formspreeId
                 ログイン不要のレポート共有URLで、クライアントやチームへの報告負担をゼロにします。
               </p>
               <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 pt-4">
-                <a href={signupHref} class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3.5 px-8 rounded-xl transition shadow-lg shadow-emerald-500/20 text-center text-sm">
-                  今すぐ無料で差分調査を自動化する
+                <a href="#contact" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3.5 px-8 rounded-xl transition shadow-lg shadow-emerald-500/20 text-center text-sm">
+                  差分調査の自動化を申し込む
                 </a>
                 <a href="#pricing" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold py-3.5 px-8 rounded-xl transition text-center text-sm">
                   料金プランを見る
@@ -197,7 +197,7 @@ export const LandingPage: FC<{ appUrl: string; allowSignup: boolean; formspreeId
             CSSセレクタ指定に対応。動的な口コミやフッターのノイズを除外し、メインコピー、価格表、オファー部分だけを狙い撃ち調査できます。
           </Feature>
           <Feature n="③" title="ログイン不要の1秒共有URL">
-            検知したAIサマリーとビフォーアフターのレポートを公開リンクに。Slackへの自動通知にも対応し、貼るだけで競合調査報告が完了します。
+            検知したAIサマリーとビフォーアフターのレポートを公開リンクに。SlackやChatworkに貼るだけで、競合調査の報告が完了します。
           </Feature>
         </div>
       </section>
@@ -222,34 +222,24 @@ export const LandingPage: FC<{ appUrl: string; allowSignup: boolean; formspreeId
       <section id="pricing" class="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-900">
         <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <h2 class="text-3xl font-bold tracking-tight text-white">シンプルで透明な料金プラン</h2>
-          <p class="text-sm text-slate-400">社内への稟議や経費精算がスムーズな「銀行振込（請求書払い）」に完全対応しております。</p>
+          <p class="text-sm text-slate-400">プランの違いは監視できるドメイン数だけ。AIサマリーなどすべての機能を全プランでご利用いただけます。</p>
+          <p class="text-xs text-slate-500">社内への稟議や経費精算がスムーズな「銀行振込（請求書払い）」に完全対応しております。</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          <PriceCard
-            name="スタートプラン"
-            catch="まずは自動検知を試したいマーケターへ"
-            price="¥4,800"
-            items={[['監視対象：1ドメイン'], ['自動パトロール：1日1回'], ['手動での即時パトロール対応'], ['ログイン不要のレポート共有']]}
-            cta="無料で始める"
-            href={signupHref}
-          />
-          <PriceCard
-            popular
-            name="ライトプラン"
-            catch="主要な競合の動向をAIで完全マーク"
-            price="¥9,800"
-            items={[['監視対象：5ドメイン', true], ['AI自動サマリー機能搭載', true], ['ビジュアル・アーカイブ（スクショ自動保存）', true], ['自動パトロール：1時間に1回'], ['手動での即時パトロール対応', true], ['請求書払い（銀行振込）対応']]}
-            cta="このプランを問い合わせる"
-            href="#contact"
-          />
-          <PriceCard
-            name="ビジネスプラン"
-            catch="複数クライアントを抱える広告代理店へ"
-            price="¥29,800"
-            items={[['監視対象：30ドメイン', true], ['AI自動サマリー機能搭載', true], ['ビジュアル・アーカイブ（スクショ自動保存）', true], ['自動パトロール：10分ごと'], ['手動での即時パトロール対応', true], ['Slack への自動通知', true], ['請求書払い（銀行振込）対応']]}
-            cta="このプランを問い合わせる"
-            href="#contact"
-          />
+          {PLAN_IDS.map((id) => {
+            const plan = PLANS[id];
+            return (
+              <PriceCard
+                popular={id === 'light'}
+                name={`${plan.label}プラン`}
+                catch={PLAN_CATCH[id]}
+                price={plan.price}
+                items={[[`監視対象：${plan.maxTargets}ドメイン`, true], ...COMMON_FEATURES.map((f): [string] => [f])]}
+                cta="このプランを申し込む"
+                href={`#contact`}
+              />
+            );
+          })}
         </div>
 
         <div class="mt-16 max-w-3xl mx-auto bg-slate-900/30 border border-slate-800 p-6 sm:p-8 rounded-2xl space-y-4">
@@ -257,10 +247,10 @@ export const LandingPage: FC<{ appUrl: string; allowSignup: boolean; formspreeId
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center text-xs pt-2">
             <Step n="1. お問い合わせ">下部のフォームより希望プランをご送信ください。</Step>
             <Step n="2. 請求書の発行">PDFの請求書をメールにて速やかに送付いたします。</Step>
-            <Step n="3. 上限開放">お振込み確認後、即時監視上限をアップグレードします。</Step>
+            <Step n="3. ご利用開始">お振込み確認後、ログイン情報をメールでお送りします（プラン変更の場合は即時に上限を引き上げます）。</Step>
           </div>
           <p class="text-[11px] text-slate-500 text-center leading-relaxed pt-2">
-            ※有料プランは3ヶ月または1年単位での前払いとなります。秘密保持契約（NDA）等の締結や、指定の請求書フォーマットでの発行をご希望の場合も、お問い合わせ時にお気軽にご相談ください。
+            ※各プランは3ヶ月または1年単位での前払いとなります。無料プランはございません。秘密保持契約（NDA）等の締結や、指定の請求書フォーマットでの発行をご希望の場合も、お問い合わせ時にお気軽にご相談ください。
           </p>
         </div>
       </section>
@@ -271,8 +261,11 @@ export const LandingPage: FC<{ appUrl: string; allowSignup: boolean; formspreeId
           <p class="text-sm text-slate-400">導入にあたって不安な点はこちらをご確認ください。</p>
         </div>
         <div class="space-y-6">
-          <Faq q="登録すれば本当にすぐ無料で使えますか？">
-            はい、メールアドレスとパスワードを設定するだけで、クレジットカード不要でフリープランをご利用いただけます。自動パトロール（1日1回）に加え、ダッシュボードからボタン1つで任意のタイミングで即時パトロールを実行することも可能です。
+          <Faq q="申し込みから利用開始までの流れを教えてください。">
+            下部のフォームから希望プランをお送りください。請求書（PDF）をメールでお送りし、お振込みを確認後、ログイン情報をお知らせします。ログイン後すぐに監視したいLPを登録でき、自動パトロール（1時間に1回）に加えて、ボタン1つで任意のタイミングに即時パトロールも実行できます。
+          </Faq>
+          <Faq q="無料プランやお試しはありますか？">
+            無料プランはございません。実際のレポートの内容は、<a href="/share/demo-token" target="_blank" class="text-emerald-400 underline">サンプルレポート</a>でご確認いただけます。デモのご要望はお問い合わせフォームからご相談ください。
           </Faq>
           <Faq q="AIサマリー機能はどのような内容を出力しますか？">
             変更前後のテキストを比較し、単に「テキストが変更された」だけでなく、「価格が〇〇円高くなった」「〇〇の特典が追加された」など、マーケティング視点で重要な変更と競合の意図、取るべき対抗策を自然な日本語で要約します。重要度とカテゴリタグも自動で付与されます。
@@ -287,8 +280,8 @@ export const LandingPage: FC<{ appUrl: string; allowSignup: boolean; formspreeId
       <section id="contact" class="py-20 bg-slate-900/30 border-t border-slate-900">
         <div class="max-w-2xl mx-auto px-4">
           <div class="text-center mb-8 space-y-2">
-            <h2 class="text-2xl font-bold text-white">お問い合わせ・プラン変更ご相談</h2>
-            <p class="text-xs text-slate-400">有料プランへのアップグレードや法人契約のご相談はこちらからご連絡ください。</p>
+            <h2 class="text-2xl font-bold text-white">お申し込み・お問い合わせ</h2>
+            <p class="text-xs text-slate-400">ご希望のプランを選んでお送りください。請求書とご利用開始のご案内をメールでお送りします。プラン変更やパスワード再発行のご依頼もこちらから。</p>
           </div>
           {p.sent && (
             <div class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm rounded-xl text-center">✨ お問い合わせを受け付けました。担当者よりご連絡いたします。</div>
@@ -297,6 +290,19 @@ export const LandingPage: FC<{ appUrl: string; allowSignup: boolean; formspreeId
             <input type="hidden" name="_next" value={`${p.appUrl}/?sent=1#contact`} />
             <ContactField label="お名前 / 会社名" name="name" />
             <ContactField label="メールアドレス" name="email" type="email" />
+            <div>
+              <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1" for="c-plan">ご用件</label>
+              <select id="c-plan" name="plan" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                {PLAN_IDS.map((id) => (
+                  <option value={`${PLANS[id].label}プランの申し込み`}>
+                    {PLANS[id].label}プランの申し込み（{PLANS[id].price}/月・{PLANS[id].maxTargets}ドメイン）
+                  </option>
+                ))}
+                <option value="プラン変更">プラン変更</option>
+                <option value="パスワード再発行">パスワード再発行</option>
+                <option value="デモ・その他のご相談">デモ・その他のご相談</option>
+              </select>
+            </div>
             <div>
               <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1" for="c-body">お問い合わせ内容</label>
               <textarea id="c-body" name="body" rows={5} required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
@@ -336,6 +342,21 @@ const UseCase: FC<{ n: string; title: string; children?: any }> = (p) => (
     <p class="text-sm text-slate-400 leading-relaxed">{p.children}</p>
   </div>
 );
+
+const PLAN_CATCH: Record<string, string> = {
+  start: 'まずは主要な競合1社をマークしたい方へ',
+  light: '主要な競合の動向をAIで完全マーク',
+  business: '複数クライアントを抱える広告代理店へ',
+};
+
+const COMMON_FEATURES = [
+  `自動パトロール：${describeInterval()}`,
+  '手動での即時パトロール',
+  'AI自動サマリー（意図の分析と対抗策）',
+  'ビジュアル・アーカイブ（スクショ自動保存）',
+  'ログイン不要のレポート共有URL',
+  '請求書払い（銀行振込）対応',
+];
 
 const PriceCard: FC<{ name: string; catch: string; price: string; items: [string, boolean?][]; cta: string; href: string; popular?: boolean }> = (p) => (
   <div

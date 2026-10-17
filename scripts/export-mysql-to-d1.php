@@ -73,16 +73,16 @@ foreach ($pdo->query('SELECT * FROM users ORDER BY id') as $u) {
     $hash = $u['password_hash'] ?? '';
     // 旧版で平文が入っていたアカウントは移行しない（ログイン不可にし、管理画面からリセットしてもらう）
     if (!preg_match('/^\$2[aby]\$/', $hash)) $hash = '!reset-required';
-    $plan = strtolower(trim($u['plan_type'] ?? $u['plan'] ?? 'free'));
-    if (!in_array($plan, ['free', 'light', 'business'], true)) $plan = 'free';
+    // 無料プランは廃止。旧 free は最小のスタートプランとして移行する
+    $plan = strtolower(trim($u['plan_type'] ?? $u['plan'] ?? 'start'));
+    if (!in_array($plan, ['start', 'light', 'business'], true)) $plan = 'start';
     fwrite($out, sprintf(
-        "INSERT OR REPLACE INTO users (id, email, password_hash, plan_type, admin_memo, slack_webhook_url, created_at) VALUES (%d, %s, %s, %s, %s, %s, %s);\n",
+        "INSERT OR REPLACE INTO users (id, email, password_hash, plan_type, admin_memo, created_at) VALUES (%d, %s, %s, %s, %s, %s);\n",
         $u['id'],
         q(strtolower(trim($u['email']))),
         q($hash),
         q($plan),
         q(in_array('admin_memo', $uc) ? $u['admin_memo'] : null),
-        q(in_array('slack_webhook_url', $uc) ? ($u['slack_webhook_url'] ?: null) : null),
         in_array('created_at', $uc) && ts($u['created_at']) !== 'NULL' ? ts($u['created_at']) : (string)time()
     ));
     $n++;

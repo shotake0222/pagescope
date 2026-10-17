@@ -5,8 +5,7 @@ import type { Env, TargetRow } from '../env';
 import { computeDiff, isTrivialChange } from './diff';
 import { fetchAndExtract, FetchError, normalizeSelector } from './extract';
 import { generateInsight } from './gemini';
-import { sendSlack } from './notify';
-import { getPlan } from './plans';
+import { PATROL_INTERVAL_SEC } from './plans';
 import { captureScreenshot } from './screenshot';
 import { nowSec, randomHex, sha256Hex } from './util';
 
@@ -20,14 +19,14 @@ export interface PatrolResult {
   shareToken?: string;
 }
 
-type TargetWithOwner = TargetRow & { plan_type: string | null; slack_webhook_url: string | null };
+type TargetWithOwner = TargetRow & { plan_type: string | null };
 
 const BASELINE_MESSAGE = '初回データを保存しました。';
 const MAX_TEXT_CHARS = 200_000;
 
 async function loadTarget(env: Env, id: number): Promise<TargetWithOwner | null> {
   return env.DB.prepare(
-    `SELECT t.*, u.plan_type, u.slack_webhook_url
+    `SELECT t.*, u.plan_type
      FROM watch_targets t JOIN users u ON u.id = t.user_id WHERE t.id = ?`,
   )
     .bind(id)
@@ -48,7 +47,6 @@ export async function patrolTarget(env: Env, t: TargetWithOwner): Promise<Patrol
     .run();
   if (!claim.meta.changes) return { ...base, status: 'skipped', message: '別のパトロールが処理中です。' };
 
-  const plan = getPlan(t.plan_type);
   const selector = normalizeSelector(t.selector);
 
   // 1. 取得 & 抽出
@@ -71,7 +69,7 @@ export async function patrolTarget(env: Env, t: TargetWithOwner): Promise<Patrol
   const isLegacyHash = !!t.last_hash && t.last_hash.length === 32; // 旧版の md5
   if (!t.last_hash || !t.last_content) {
     const token = randomHex(16);
-    const shot = plan.screenshot ? await captureScreenshot(env, t.target_url, token) : null;
+    const shot = await captureScreenshot(env, t.target_url, token);
     await env.DB.batch([
       env.DB.prepare(
         `INSERT INTO diff_histories (target_id, old_content, new_content, ai_summary, screenshot_key, share_token, is_baseline, detected_at)
@@ -103,10 +101,8 @@ export async function patrolTarget(env: Env, t: TargetWithOwner): Promise<Patrol
   const diff = computeDiff(before, text);
   const token = randomHex(16);
   const [insight, shot] = await Promise.all([
-    plan.aiSummary
-      ? generateInsight(env, { targetName: t.target_name, url: t.target_url, diffExcerpt: diff.excerpt, before, after: text })
-      : Promise.resolve(null),
-    plan.screenshot ? captureScreenshot(env, t.target_url, token) : Promise.resolve(null),
+    generateInsight(env, { targetName: t.target_name, url: t.target_url, diffExcerpt: diff.excerpt, before, after: text }),
+    captureScreenshot(env, t.target_url, token),
   ]);
 
   await env.DB.batch([
@@ -118,9 +114,9 @@ export async function patrolTarget(env: Env, t: TargetWithOwner): Promise<Patrol
       t.id,
       before,
       text,
-      insight?.summary ?? null,
-      insight?.importance ?? null,
-      insight ? JSON.stringify(insight.tags) : null,
+      insight.summary,
+      insight.importance,
+      JSON.stringify(insight.tags),
       shot,
       token,
       diff.added,
@@ -132,16 +128,6 @@ export async function patrolTarget(env: Env, t: TargetWithOwner): Promise<Patrol
     ).bind(text, hash, now, t.id),
   ]);
 
-  // AI が「意味のある変更なし」と判定したものは通知しない（AIエラー時は念のため通知）
-  const aiSaysNothing = !!insight && !insight.error && insight.importance === 'none';
-  if (plan.slack && t.slack_webhook_url && !aiSaysNothing) {
-    await sendSlack(env, t.slack_webhook_url, {
-      targetName: t.target_name,
-      shareToken: token,
-      summary: insight?.error ? null : insight?.summary,
-      importance: insight?.importance,
-    });
-  }
 
   return { ...base, status: 'changed', message: '差分を検知し、レポートを作成しました。', shareToken: token };
 }
@@ -171,12 +157,12 @@ async function runWithConcurrency<T>(items: T[], limit: number, fn: (item: T) =>
 export async function runScheduledPatrol(env: Env): Promise<PatrolResult[]> {
   const now = nowSec();
   const { results } = await env.DB.prepare(
-    `SELECT t.*, u.plan_type, u.slack_webhook_url
+    `SELECT t.*, u.plan_type
      FROM watch_targets t JOIN users u ON u.id = t.user_id
      ORDER BY (t.last_checked_at IS NOT NULL), t.last_checked_at ASC`,
   ).all<TargetWithOwner>();
 
-  const due = results.filter((t) => !t.last_checked_at || now - t.last_checked_at >= getPlan(t.plan_type).intervalSec - 30);
+  const due = results.filter((t) => !t.last_checked_at || now - t.last_checked_at >= PATROL_INTERVAL_SEC - 30);
   const batch = due.slice(0, Math.max(1, Number(env.PATROL_BATCH_SIZE) || 15));
   const out: PatrolResult[] = [];
 

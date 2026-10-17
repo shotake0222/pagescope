@@ -79,7 +79,7 @@ export const DashboardPage: FC<{
             <div class="mt-3 flex flex-wrap items-center gap-2">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/50 border border-slate-700/50 text-[10px] text-slate-300 font-medium">
                 <Icon name="clock" class="w-3.5 h-3.5 text-blue-400" />
-                自動パトロールは{describeInterval(p.plan.intervalSec)}実行されます
+                自動パトロールは{describeInterval()}実行されます
               </span>
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/50 border border-slate-700/50 text-[10px] text-slate-300 font-medium">
                 <Icon name="info" class="w-3.5 h-3.5 text-amber-400" />
@@ -100,7 +100,7 @@ export const DashboardPage: FC<{
           <div class="text-left sm:text-right shrink-0">
             <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1 font-bold">現在の契約プラン</p>
             <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-bold uppercase tracking-wider">
-              {p.plan.label} Plan
+              {p.plan.label}プラン
             </span>
           </div>
         </div>

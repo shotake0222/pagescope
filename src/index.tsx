@@ -34,7 +34,6 @@ app.get('/healthz', async (c) => {
       database: db.ok ? 'ok' : db.error ? `接続エラー: ${db.error}` : `テーブル未作成: ${db.missing.join(', ')}`,
       admin_configured: !!c.env.ADMIN_USER && !!c.env.ADMIN_PASSWORD,
       gemini_configured: !!c.env.GEMINI_API_KEY,
-      signup_enabled: c.env.ALLOW_SIGNUP === 'true',
       password_hash_iterations: hashIterations(c.env),
     },
     db.ok ? 200 : 503,

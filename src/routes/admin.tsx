@@ -62,7 +62,7 @@ adminRoutes.post('/admin/logout', async (c) => {
 adminRoutes.post('/admin/users', async (c) => {
   const body = await c.req.parseBody();
   const email = String(body.email ?? '').trim().toLowerCase();
-  const plan = String(body.plan_type ?? 'free') as PlanId;
+  const plan = String(body.plan_type ?? 'start') as PlanId;
   if (!isValidEmail(email) || !PLAN_IDS.includes(plan)) return render(c, { error: '入力内容に不備があります。' });
   const exists = await c.env.DB.prepare('SELECT 1 FROM users WHERE email = ?').bind(email).first();
   if (exists) return render(c, { error: 'このメールアドレスは既に登録されています。' });

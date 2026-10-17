@@ -18,7 +18,7 @@ src/
   routes/              public（LP・ログイン・共有レポート）/ app（ダッシュボード・設定）/ admin
   views/               画面（旧 PHP のデザインを踏襲）
   lib/
-    patrol.ts          パトロール本体（取得 → 差分 → AI → スクショ → Slack）
+    patrol.ts          パトロール本体（取得 → 差分 → AI → スクショ）
     extract.ts         HTMLRewriter による監視エリア抽出（任意の CSS セレクタ対応）
     gemini.ts          Gemini 呼び出し（構造化出力・429/503 リトライ）
     screenshot.ts      PageSpeed API で撮影 → R2 保存
@@ -34,7 +34,7 @@ public/                favicon・OGP・クライアント JS（CSS はビルド�
 ## 初回セットアップ
 
 前提：Node.js 22 以上、Cloudflare アカウント。**Workers Paid プラン（月 $5）を推奨**します
-（無料プランは 1 リクエストあたりの CPU 時間が 10ms のため、大きなページの解析やログイン処理が制限に掛かる場合があります）。
+（Workers の無料プランは 1 リクエストあたりの CPU 時間が 10ms のため、大きなページの解析やログイン処理が制限に掛かる場合があります）。
 
 ```bash
 npm install
@@ -64,7 +64,7 @@ npm run deploy
 
 1. Cloudflare ダッシュボードで `pagescope.online` をサイト追加し、ドメイン業者側のネームサーバーを Cloudflare 指定のものに変更
 2. `wrangler.jsonc` の `routes` のコメントを外して `npm run deploy`
-3. `APP_URL`（Slack 通知や共有 URL に使用）が `https://pagescope.online` になっていることを確認
+3. `APP_URL`（共有 URL やメールに使用）が `https://pagescope.online` になっていることを確認
 
 旧 URL（`/login.php`、`/dashboard.php`、`/share.php?token=…`、`/scope.php?mode=share&token=…`）は新 URL へ自動転送されるので、
 既に Slack などに貼られた共有リンクもそのまま開けます。
@@ -143,23 +143,23 @@ Gemini・PageSpeed の接続先をモックサーバーに差し替えられま�
 - 取得エラー（404、セレクタ不一致など）をダッシュボードに表示
 
 **機能**
-- Slack 通知（旧 `cron_crawler.php` にあった機能）を設定画面から登録可能に。テスト送信付き
+- Slack 通知（旧 `cron_crawler.php`）は廃止
+- プランの違いを監視ドメイン数だけに整理（スタート 1／ライト 5／ビジネス 30、自動パトロールは全プラン1時間に1回）。無料プランは廃止
 - アカウント設定画面（パスワード変更・プラン確認）
 - 共有レポートの差分表示を行＋文字単位のハイライトに改善（「9,800円→10,500円」のような数字が細切れにならないよう調整）、「変更箇所の周辺だけ表示」切替、PDF 化ボタンを実装（ブラウザ印刷）
 - 監視対象ごとの「今すぐパトロール」ボタン、進捗表示
 - 監視対象の削除時にスクリーンショットも R2 から削除
-- `ALLOW_SIGNUP=true` で LP からのセルフ登録を有効化可能（既定は旧版同様、運営発行のみ）
+- アカウントは運営が `/admin` で発行（LP からのセルフ登録はなし）
 
 ## 設定値（`wrangler.jsonc` の `vars`）
 
 | 名前 | 既定値 | 内容 |
 | --- | --- | --- |
-| `APP_URL` | `https://pagescope.online` | 共有 URL・Slack 通知・メールに使う公開 URL |
+| `APP_URL` | `https://pagescope.online` | 共有 URL・メールに使う公開 URL |
 | `GEMINI_MODEL` | `gemini-2.5-flash` | 使用する Gemini モデル |
 | `PATROL_BATCH_SIZE` | `15` | 1回の自動パトロールで処理する最大件数 |
-| `ALLOW_SIGNUP` | `true` | `false` で `/signup` を閉じ、運営発行のみにする |
 | `PASSWORD_HASH_ITERATIONS` | `20000` | パスワードハッシュの強度。Workers Paid なら `100000` 推奨 |
 | `MAIL_FROM` | `PageScope <noreply@pagescope.online>` | パスワード再設定メールの送信元（Resend で認証したドメイン） |
 | `FORMSPREE_ID` | `xgaedrrr` | LP のお問い合わせフォーム送信先 |
 
-プランごとの監視上限・パトロール間隔・機能のオン/オフは `src/lib/plans.ts` で変更できます。
+プランの料金・監視上限、全プラン共通のパトロール間隔は `src/lib/plans.ts` で変更できます（LP の料金表にも自動で反映）。

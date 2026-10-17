@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 import type { AppEnv, TargetRow } from '../env';
 import { destroyUserSessions, hashPassword, requireUser, createSession, verifyPassword } from '../lib/auth';
 import { normalizeSelector, validateSelector } from '../lib/extract';
-import { sendSlack } from '../lib/notify';
 import { patrolOwnTarget } from '../lib/patrol';
 import { getPlan, MANUAL_PATROL_COOLDOWN_SEC } from '../lib/plans';
 import { normalizeUrl } from '../lib/util';
@@ -138,7 +137,7 @@ appRoutes.post('/api/patrol/:id', async (c) => {
 appRoutes.get('/settings', (c) => {
   const user = c.get('user');
   c.header('Cache-Control', 'no-store');
-  return c.html(<SettingsPage email={user.email} plan={getPlan(user.plan_type)} slackUrl={user.slack_webhook_url} flash={c.req.query('msg')} />);
+  return c.html(<SettingsPage email={user.email} plan={getPlan(user.plan_type)} flash={c.req.query('msg')} />);
 });
 
 appRoutes.post('/settings/password', async (c) => {
@@ -154,27 +153,4 @@ appRoutes.post('/settings/password', async (c) => {
   await destroyUserSessions(c.env, user.id);
   await createSession(c, 'user', user.id); // この端末はログイン状態を維持
   return c.redirect('/settings?msg=password_ok');
-});
-
-appRoutes.post('/settings/slack', async (c) => {
-  const user = c.get('user');
-  const body = await c.req.parseBody();
-  const url = String(body.slack_webhook_url ?? '').trim();
-  if (url && !/^https:\/\/hooks\.slack\.com\/[\w/-]+$/.test(url)) return c.redirect('/settings?msg=slack_invalid');
-  await c.env.DB.prepare('UPDATE users SET slack_webhook_url = ? WHERE id = ?').bind(url || null, user.id).run();
-  return c.redirect('/settings?msg=slack_ok');
-});
-
-appRoutes.post('/settings/slack/test', async (c) => {
-  const user = c.get('user');
-  const body = await c.req.parseBody();
-  const url = String(body.slack_webhook_url ?? user.slack_webhook_url ?? '').trim();
-  if (!/^https:\/\/hooks\.slack\.com\/[\w/-]+$/.test(url)) return c.redirect('/settings?msg=slack_invalid');
-  await sendSlack(c.env, url, {
-    targetName: '（テスト通知）PageScope 連携確認',
-    shareToken: 'demo-token',
-    summary: 'これは PageScope からのテスト通知です。実際に差分を検知すると、ここに AI サマリーが表示されます。',
-    importance: 'low',
-  });
-  return c.redirect('/settings?msg=slack_test_ok');
 });

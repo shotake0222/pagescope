@@ -1,5 +1,5 @@
 import type { FC } from 'hono/jsx';
-import { PLANS, PLAN_IDS } from '../lib/plans';
+import { PLANS, PLAN_IDS, normalizePlanId } from '../lib/plans';
 import { formatJst } from '../lib/util';
 import { Layout } from './layout';
 
@@ -118,7 +118,7 @@ export const AdminPage: FC<{
                   ) : (
                     p.users.map((u) => {
                       const formId = `update_${u.id}`;
-                      const limit = PLANS[u.plan_type as keyof typeof PLANS]?.maxTargets ?? 1;
+                      const limit = PLANS[normalizePlanId(u.plan_type)].maxTargets;
                       return (
                         <tr class="hover:bg-slate-900/30 transition">
                           <td class="px-5 py-4 font-mono text-xs text-slate-400 align-top">{u.id}</td>
@@ -139,7 +139,7 @@ export const AdminPage: FC<{
                           <td class="px-5 py-3 align-top">
                             <select name="plan_type" form={formId} class="w-full bg-slate-950 border border-slate-700/50 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-emerald-500">
                               {PLAN_IDS.map((id) => (
-                                <option value={id} selected={u.plan_type === id}>
+                                <option value={id} selected={normalizePlanId(u.plan_type) === id}>
                                   {PLANS[id].label}
                                 </option>
                               ))}

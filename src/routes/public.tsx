@@ -13,14 +13,12 @@ import {
 } from '../lib/auth';
 import { sendMail } from '../lib/notify';
 import { isValidEmail, nowSec, randomHex, sha256Hex } from '../lib/util';
-import { ForgotPage, LoginPage, ResetPage, SignupPage } from '../views/auth';
+import { ForgotPage, LoginPage, ResetPage } from '../views/auth';
 import { LandingPage } from '../views/landing';
 import { MessagePage } from '../views/misc';
 import { DEMO_REPORT, SharePage, type ShareReport } from '../views/share';
 
 export const publicRoutes = new Hono<AppEnv>();
-
-const signupAllowed = (env: AppEnv['Bindings']) => env.ALLOW_SIGNUP === 'true';
 
 // ---------------------------------------------------------------------------
 // LP
@@ -30,7 +28,6 @@ publicRoutes.get('/', async (c) => {
   return c.html(
     <LandingPage
       appUrl={c.env.APP_URL.replace(/\/$/, '')}
-      allowSignup={signupAllowed(c.env)}
       formspreeId={c.env.FORMSPREE_ID}
       loggedIn={!!user}
       sent={c.req.query('sent') === '1'}
@@ -79,7 +76,7 @@ publicRoutes.get('/screenshots/:key', async (c) => {
 publicRoutes.get('/login', async (c) => {
   if (await getSessionUser(c)) return c.redirect('/dashboard');
   const notice = c.req.query('reset') === '1' ? 'パスワードを変更しました。新しいパスワードでログインしてください。' : undefined;
-  return c.html(<LoginPage allowSignup={signupAllowed(c.env)} notice={notice} />);
+  return c.html(<LoginPage notice={notice} />);
 });
 
 publicRoutes.post('/login', async (c) => {
@@ -87,7 +84,7 @@ publicRoutes.post('/login', async (c) => {
   const email = String(body.email ?? '').trim().toLowerCase();
   const password = String(body.password ?? '');
   const render = (error: string, status: 400 | 429 = 400) =>
-    c.html(<LoginPage allowSignup={signupAllowed(c.env)} error={error} email={email} />, status);
+    c.html(<LoginPage error={error} email={email} />, status);
 
   if (!isValidEmail(email) || !password) return render('メールアドレスとパスワードを入力してください。');
 
@@ -117,32 +114,9 @@ publicRoutes.post('/logout', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
-// 新規登録（ALLOW_SIGNUP=true のときのみ）
+// 新規登録は廃止（申し込みはお問い合わせフォーム → 運営が /admin でアカウント発行）
 // ---------------------------------------------------------------------------
-publicRoutes.get('/signup', (c) => {
-  if (!signupAllowed(c.env)) return c.redirect('/#contact');
-  return c.html(<SignupPage />);
-});
-
-publicRoutes.post('/signup', async (c) => {
-  if (!signupAllowed(c.env)) return c.redirect('/#contact');
-  const body = await c.req.parseBody();
-  const email = String(body.email ?? '').trim().toLowerCase();
-  const password = String(body.password ?? '');
-  if (!isValidEmail(email)) return c.html(<SignupPage error="有効なメールアドレスを入力してください。" email={email} />, 400);
-  if (password.length < 8) return c.html(<SignupPage error="パスワードは安全のため8文字以上で設定してください。" email={email} />, 400);
-  if (await rateLimitHit(c.env, `signup:ip:${clientIp(c)}`)) {
-    return c.html(<SignupPage error="短時間に多数の登録が行われました。しばらく経ってからお試しください。" email={email} />, 429);
-  }
-  const exists = await c.env.DB.prepare('SELECT 1 FROM users WHERE email = ?').bind(email).first();
-  if (exists) return c.html(<SignupPage error="このメールアドレスは既に登録されています。" email={email} />, 400);
-
-  const res = await c.env.DB.prepare("INSERT INTO users (email, password_hash, plan_type) VALUES (?, ?, 'free')")
-    .bind(email, await hashPassword(c.env, password))
-    .run();
-  await createSession(c, 'user', Number(res.meta.last_row_id));
-  return c.redirect('/dashboard');
-});
+publicRoutes.get('/signup', (c) => c.redirect('/#contact'));
 
 // ---------------------------------------------------------------------------
 // パスワード再設定

@@ -6,7 +6,6 @@ export interface Env {
   APP_URL: string;
   GEMINI_MODEL: string;
   PATROL_BATCH_SIZE: string;
-  ALLOW_SIGNUP: string;
   MAIL_FROM: string;
   FORMSPREE_ID: string;
   PASSWORD_HASH_ITERATIONS?: string;
@@ -29,7 +28,7 @@ export interface UserRow {
   password_hash: string;
   plan_type: string;
   admin_memo: string | null;
-  slack_webhook_url: string | null;
+  slack_webhook_url: string | null; // 旧版の列（未使用）
   created_at: number;
 }
 
