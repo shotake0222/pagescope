@@ -1,62 +1,66 @@
 {
-  // PageScope — Cloudflare Workers 設定
-  // 初回セットアップ手順は README.md を参照してください。
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "pagescope",
-  "main": "src/index.tsx",
-  "compatibility_date": "2025-09-01",
-  "workers_dev": true,
-
-  // 独自ドメイン（pagescope.online）を Cloudflare に移した後でコメントを外してください
-  // "routes": [
-  //   { "pattern": "pagescope.online", "custom_domain": true }
-  // ],
-
-  // 静的ファイル（CSS / favicon / JS）。public/ 以外のパスは Worker が処理します
-  "assets": {
-    "directory": "./public",
-    "binding": "ASSETS",
-    "run_worker_first": false
-  },
-
-  // データベース（MySQL の代替）
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "pagescope",
-      // `npx wrangler d1 create pagescope` の出力に表示される ID に置き換えてください
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "migrations_dir": "migrations"
-    }
-  ],
-
-  // スクリーンショット保存先（サーバーの /screenshots フォルダの代替）
-  "r2_buckets": [
-    { "binding": "SCREENSHOTS", "bucket_name": "pagescope-screenshots" }
-  ],
-
-  // 自動パトロール（10分ごとに「期限が来た監視対象」だけを処理）
-  "triggers": {
-    "crons": ["*/10 * * * *"]
-  },
-
-  "vars": {
-    "APP_URL": "https://pagescope.online",
-    "GEMINI_MODEL": "gemini-2.5-flash",
-    // 1回の自動パトロールで処理する最大件数（Gemini の無料枠レート制限対策）
-    "PATROL_BATCH_SIZE": "15",
-    // "true" にすると /signup から誰でも無料登録できます（現行と同じく運営発行のみなら "false"）
-    "ALLOW_SIGNUP": "false",
-    "MAIL_FROM": "PageScope <noreply@pagescope.online>",
-    "FORMSPREE_ID": "xgaedrrr"
-  },
-
-  "observability": { "enabled": true }
-
-  // 秘密情報は vars ではなく secret で登録します（README 参照）:
-  //   GEMINI_API_KEY      … Gemini APIキー（必須）
-  //   ADMIN_USER          … 管理画面ID（必須）
-  //   ADMIN_PASSWORD      … 管理画面パスワード（必須・12文字以上推奨）
-  //   PAGESPEED_API_KEY   … スクリーンショット用（任意・推奨）
-  //   RESEND_API_KEY      … パスワード再設定メール送信用（任意）
+	// PageScope — Cloudflare Workers 設定
+	// 初回セットアップ手順は README.md を参照してください。
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "pagescope",
+	"main": "src/index.tsx",
+	"compatibility_date": "2025-09-01",
+	"workers_dev": true,
+	// 独自ドメイン（pagescope.online）を Cloudflare に移した後でコメントを外してください
+	// "routes": [
+	//   { "pattern": "pagescope.online", "custom_domain": true }
+	// ],
+	// 静的ファイル（CSS / favicon / JS）。public/ 以外のパスは Worker が処理します
+	"assets": {
+		"directory": "./public",
+		"binding": "ASSETS",
+		"run_worker_first": false
+	},
+	// データベース（MySQL の代替）
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "pagescope",
+			// `npx wrangler d1 create pagescope` の出力に表示される ID に置き換えてください
+			"database_id": "",
+			"migrations_dir": "migrations"
+		}
+	],
+	// スクリーンショット保存先（サーバーの /screenshots フォルダの代替）
+	"r2_buckets": [
+		{
+			"binding": "SCREENSHOTS",
+			"bucket_name": "pagescope-screenshots"
+		},
+		{
+			"bucket_name": "pagescope-screenshots",
+			"binding": "pagescope_screenshots",
+			"remote": true
+		}
+	],
+	// 自動パトロール（10分ごとに「期限が来た監視対象」だけを処理）
+	"triggers": {
+		"crons": [
+			"*/10 * * * *"
+		]
+	},
+	"vars": {
+		"APP_URL": "https://pagescope.online",
+		"GEMINI_MODEL": "gemini-2.5-flash",
+		// 1回の自動パトロールで処理する最大件数（Gemini の無料枠レート制限対策）
+		"PATROL_BATCH_SIZE": "15",
+		// "true" にすると /signup から誰でも無料登録できます（現行と同じく運営発行のみなら "false"）
+		"ALLOW_SIGNUP": "false",
+		"MAIL_FROM": "PageScope <noreply@pagescope.online>",
+		"FORMSPREE_ID": "xgaedrrr"
+	},
+	"observability": {
+		"enabled": true
+	}
+	// 秘密情報は vars ではなく secret で登録します（README 参照）:
+	//   GEMINI_API_KEY      … Gemini APIキー（必須）
+	//   ADMIN_USER          … 管理画面ID（必須）
+	//   ADMIN_PASSWORD      … 管理画面パスワード（必須・12文字以上推奨）
+	//   PAGESPEED_API_KEY   … スクリーンショット用（任意・推奨）
+	//   RESEND_API_KEY      … パスワード再設定メール送信用（任意）
 }
