@@ -50,7 +50,8 @@
 		// 1回の自動パトロールで処理する最大件数（Gemini の無料枠レート制限対策）
 		"PATROL_BATCH_SIZE": "15",
 		// "true" にすると /signup から誰でも無料登録できます（現行と同じく運営発行のみなら "false"）
-		"ALLOW_SIGNUP": "false",
+		"ALLOW_SIGNUP": "true",
+    "PASSWORD_HASH_ITERATIONS": "20000",
 		"MAIL_FROM": "PageScope <noreply@pagescope.online>",
 		"FORMSPREE_ID": "xgaedrrr"
 	},

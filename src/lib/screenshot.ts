@@ -11,6 +11,8 @@ export async function captureScreenshot(env: Env, url: string, token: string): P
   api.searchParams.set('url', url);
   api.searchParams.set('category', 'PERFORMANCE');
   api.searchParams.set('strategy', 'desktop');
+  // 応答全体（数MB）ではなくスクリーンショットだけを受け取り、CPU 時間を節約する
+  api.searchParams.set('fields', 'lighthouseResult/audits/final-screenshot/details/data');
   if (env.PAGESPEED_API_KEY) api.searchParams.set('key', env.PAGESPEED_API_KEY);
 
   try {

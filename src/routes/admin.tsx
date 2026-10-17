@@ -67,7 +67,7 @@ adminRoutes.post('/admin/users', async (c) => {
   const exists = await c.env.DB.prepare('SELECT 1 FROM users WHERE email = ?').bind(email).first();
   if (exists) return render(c, { error: 'このメールアドレスは既に登録されています。' });
   const pw = randomPassword();
-  await c.env.DB.prepare('INSERT INTO users (email, password_hash, plan_type) VALUES (?, ?, ?)').bind(email, await hashPassword(pw), plan).run();
+  await c.env.DB.prepare('INSERT INTO users (email, password_hash, plan_type) VALUES (?, ?, ?)').bind(email, await hashPassword(c.env, pw), plan).run();
   return render(c, { message: `新規ユーザー「${email}」を登録しました！`, generatedPassword: pw });
 });
 
@@ -87,7 +87,7 @@ adminRoutes.post('/admin/users/:id/reset-password', async (c) => {
   const user = await c.env.DB.prepare('SELECT email FROM users WHERE id = ?').bind(id).first<{ email: string }>();
   if (!user) return render(c, { error: '対象のユーザーが見つかりません。' });
   const pw = randomPassword();
-  await c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(await hashPassword(pw), id).run();
+  await c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(await hashPassword(c.env, pw), id).run();
   await destroyUserSessions(c.env, id);
   return render(c, { message: `ユーザー「${user.email}」のパスワードをリセットしました！`, generatedPassword: pw });
 });

@@ -148,9 +148,9 @@ appRoutes.post('/settings/password', async (c) => {
   const next = String(body.password ?? '');
   if (next.length < 8) return c.redirect('/settings?msg=password_short');
   if (next !== String(body.password2 ?? '')) return c.redirect('/settings?msg=password_mismatch');
-  if (!(await verifyPassword(current, user.password_hash)).ok) return c.redirect('/settings?msg=password_wrong');
+  if (!(await verifyPassword(c.env, current, user.password_hash)).ok) return c.redirect('/settings?msg=password_wrong');
 
-  await c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(await hashPassword(next), user.id).run();
+  await c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(await hashPassword(c.env, next), user.id).run();
   await destroyUserSessions(c.env, user.id);
   await createSession(c, 'user', user.id); // この端末はログイン状態を維持
   return c.redirect('/settings?msg=password_ok');

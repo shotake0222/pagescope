@@ -9,6 +9,7 @@ export interface Env {
   ALLOW_SIGNUP: string;
   MAIL_FROM: string;
   FORMSPREE_ID: string;
+  PASSWORD_HASH_ITERATIONS?: string;
 
   // secrets
   GEMINI_API_KEY?: string;

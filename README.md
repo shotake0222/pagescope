@@ -79,6 +79,10 @@ npm run deploy
 
 ---
 
+運用の手順（申し込み〜ログイン〜利用、プラン変更、パスワード再発行など）は [docs/OPERATIONS.md](docs/OPERATIONS.md) にまとめています。
+
+---
+
 ## 旧サーバーからのデータ移行
 
 1. `scripts/export-mysql-to-d1.php` を Xserver にアップロードし、SSH で実行（ブラウザからは実行不可）
@@ -95,6 +99,7 @@ npm run deploy
    ```
 
 - パスワードは旧 bcrypt のまま移行され、各ユーザーの次回ログイン時に自動で新方式に切り替わります（再発行は不要）
+  - ただし旧方式の照合は CPU を約 90ms 使うため、**Workers 無料プランではログインできません**。無料プランのまま移行する場合は `/admin` の「パスリセット」で再発行してください
 - 移行直後の最初のパトロールは、抽出方式の違いによる誤検知を避けるため「基準の更新」だけを行い、アラートは出しません
 - 旧版で平文パスワードのまま残っていたアカウントは移行後ログインできません。管理画面 `/admin` の「パスリセット」で再発行してください
 - 移行が終わったら Xserver の PHP ファイル・`.env` は削除してください
@@ -152,7 +157,8 @@ Gemini・PageSpeed の接続先をモックサーバーに差し替えられま�
 | `APP_URL` | `https://pagescope.online` | 共有 URL・Slack 通知・メールに使う公開 URL |
 | `GEMINI_MODEL` | `gemini-2.5-flash` | 使用する Gemini モデル |
 | `PATROL_BATCH_SIZE` | `15` | 1回の自動パトロールで処理する最大件数 |
-| `ALLOW_SIGNUP` | `false` | `true` で `/signup` を公開 |
+| `ALLOW_SIGNUP` | `true` | `false` で `/signup` を閉じ、運営発行のみにする |
+| `PASSWORD_HASH_ITERATIONS` | `20000` | パスワードハッシュの強度。Workers Paid なら `100000` 推奨 |
 | `MAIL_FROM` | `PageScope <noreply@pagescope.online>` | パスワード再設定メールの送信元（Resend で認証したドメイン） |
 | `FORMSPREE_ID` | `xgaedrrr` | LP のお問い合わせフォーム送信先 |
 

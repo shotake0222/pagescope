@@ -7,10 +7,20 @@ import { nowSec, randomHex, safeEqual, sha256Hex } from './util';
 const enc = new TextEncoder();
 
 // ---------------------------------------------------------------------------
-// パスワードハッシュ（PBKDF2-SHA256 / Workers の上限 100,000 回）
-// 旧 PHP 版の bcrypt ($2y$...) はログイン時に検証し、成功したら PBKDF2 へ自動移行します。
+// パスワードハッシュ（PBKDF2-SHA256）
+// 反復回数は wrangler.jsonc の PASSWORD_HASH_ITERATIONS で設定します。
+//   ・Workers 無料プラン（1リクエストの CPU 時間 10ms）: 20000（約 3.5ms）
+//   ・Workers Paid プラン: 100000（Workers の上限・約 17ms）を推奨
+// 回数を上げると、既存ユーザーは次回ログイン時に自動で新しい回数へ切り替わります。
+// 旧 PHP 版の bcrypt ($2y$...) もログイン時に検証し、成功したら PBKDF2 へ自動移行します。
 // ---------------------------------------------------------------------------
-const PBKDF2_ITER = 100_000;
+const DEFAULT_ITER = 20_000;
+const MAX_ITER = 100_000; // Workers の Web Crypto が受け付ける上限
+
+export function hashIterations(env: Pick<Env, 'PASSWORD_HASH_ITERATIONS'>): number {
+  const n = Math.floor(Number(env.PASSWORD_HASH_ITERATIONS));
+  return Number.isFinite(n) && n >= 10_000 ? Math.min(n, MAX_ITER) : DEFAULT_ITER;
+}
 
 function b64(buf: ArrayBuffer | Uint8Array): string {
   const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
@@ -27,21 +37,25 @@ async function pbkdf2(password: string, salt: Uint8Array, iterations: number): P
   return crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, key, 256);
 }
 
-export async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(env: Pick<Env, 'PASSWORD_HASH_ITERATIONS'>, password: string): Promise<string> {
+  const iter = hashIterations(env);
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  const hash = await pbkdf2(password, salt, PBKDF2_ITER);
-  return `pbkdf2$${PBKDF2_ITER}$${b64(salt)}$${b64(hash)}`;
+  const hash = await pbkdf2(password, salt, iter);
+  return `pbkdf2$${iter}$${b64(salt)}$${b64(hash)}`;
 }
 
 /** @returns ok: 一致したか / needsRehash: 旧形式なので再ハッシュすべきか */
 export async function verifyPassword(
+  env: Pick<Env, 'PASSWORD_HASH_ITERATIONS'>,
   password: string,
   stored: string,
 ): Promise<{ ok: boolean; needsRehash: boolean }> {
   if (stored.startsWith('pbkdf2$')) {
     const [, iterStr, saltB64, hashB64] = stored.split('$');
-    const hash = await pbkdf2(password, unb64(saltB64), Number(iterStr));
-    return { ok: safeEqual(b64(hash), hashB64), needsRehash: Number(iterStr) < PBKDF2_ITER };
+    const iter = Number(iterStr);
+    if (!Number.isFinite(iter) || iter < 1 || iter > MAX_ITER || !saltB64 || !hashB64) return { ok: false, needsRehash: false };
+    const hash = await pbkdf2(password, unb64(saltB64), iter);
+    return { ok: safeEqual(b64(hash), hashB64), needsRehash: iter < hashIterations(env) };
   }
   if (/^\$2[aby]\$/.test(stored)) {
     // PHP の $2y$ は $2b$ と同一アルゴリズム

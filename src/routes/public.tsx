@@ -100,11 +100,11 @@ publicRoutes.post('/login', async (c) => {
   const user = await c.env.DB.prepare('SELECT id, password_hash FROM users WHERE email = ?')
     .bind(email)
     .first<{ id: number; password_hash: string }>();
-  const v = user ? await verifyPassword(password, user.password_hash) : { ok: false, needsRehash: false };
+  const v = user ? await verifyPassword(c.env, password, user.password_hash) : { ok: false, needsRehash: false };
   if (!user || !v.ok) return render('メールアドレスまたはパスワードが間違っています。');
 
   if (v.needsRehash) {
-    await c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(await hashPassword(password), user.id).run();
+    await c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(await hashPassword(c.env, password), user.id).run();
   }
   await rateLimitReset(c.env, mailKey);
   await createSession(c, 'user', user.id);
@@ -138,7 +138,7 @@ publicRoutes.post('/signup', async (c) => {
   if (exists) return c.html(<SignupPage error="このメールアドレスは既に登録されています。" email={email} />, 400);
 
   const res = await c.env.DB.prepare("INSERT INTO users (email, password_hash, plan_type) VALUES (?, ?, 'free')")
-    .bind(email, await hashPassword(password))
+    .bind(email, await hashPassword(c.env, password))
     .run();
   await createSession(c, 'user', Number(res.meta.last_row_id));
   return c.redirect('/dashboard');
@@ -199,7 +199,7 @@ publicRoutes.post('/reset', async (c) => {
   if (!row) return c.html(<ResetPage token={token} invalid />, 400);
   if (password.length < 8) return c.html(<ResetPage token={token} error="パスワードは8文字以上で入力してください。" />, 400);
   await c.env.DB.batch([
-    c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(await hashPassword(password), row.user_id),
+    c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(await hashPassword(c.env, password), row.user_id),
     c.env.DB.prepare('DELETE FROM password_resets WHERE user_id = ?').bind(row.user_id),
   ]);
   await destroyUserSessions(c.env, row.user_id);
