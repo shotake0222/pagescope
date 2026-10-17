@@ -22,7 +22,7 @@
 			"binding": "DB",
 			"database_name": "pagescope",
 			// `npx wrangler d1 create pagescope` の出力に表示される ID に置き換えてください
-			"database_id": "",
+			"database_id": "d515b911-ac96-4401-8f54-9de8a779dd55",
 			"migrations_dir": "migrations"
 		}
 	],
