@@ -1,0 +1,30 @@
+@import "tailwindcss";
+@source "../";
+
+@theme {
+  --font-sans: "Noto Sans JP", ui-sans-serif, system-ui, sans-serif;
+  --font-logo: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
+}
+
+/* 共通スクロールバー */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+.diff-container { word-break: break-all; white-space: pre-wrap; line-height: 1.8; }
+
+/* PDF化（ブラウザの印刷 → PDF保存）用 */
+@media print {
+  @page { margin: 12mm; }
+  body { background: #fff !important; color: #0f172a !important; }
+  .no-print { display: none !important; }
+  .print-plain, .print-plain * {
+    background: transparent !important; color: #0f172a !important; box-shadow: none !important;
+    border-color: #cbd5e1 !important;
+  }
+  .print-plain .diff-scroll { height: auto !important; max-height: none !important; overflow: visible !important; }
+  .print-plain .diff-add { background: #dcfce7 !important; color: #166534 !important; }
+  .print-plain .diff-del { background: #fee2e2 !important; color: #991b1b !important; }
+  header { position: static !important; }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "pagescope",
+  "version": "1.0.0",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/styles/app.css -o ./public/assets/app.css --minify",
+    "build:vendor": "mkdir -p public/assets && cp node_modules/diff/dist/diff.min.js public/assets/diff.min.js",
+    "build": "npm run build:vendor && npm run build:css",
+    "dev": "npm run build && wrangler dev",
+    "typecheck": "tsc --noEmit",
+    "db:migrate:local": "wrangler d1 migrations apply pagescope --local",
+    "db:migrate:remote": "wrangler d1 migrations apply pagescope --remote",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shotake0222/pagescope.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shotake0222/pagescope/issues"
+  },
+  "homepage": "https://github.com/shotake0222/pagescope#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "diff": "^9.0.0",
+    "hono": "^4.13.13"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261016.1",
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.151.1"
+  },
+  "private": true,
+  "type": "module"
+}

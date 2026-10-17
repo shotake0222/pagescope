@@ -1,0 +1,8 @@
+# ローカル開発用の秘密情報（このファイルを .dev.vars にコピーして値を入れてください）
+# .dev.vars は .gitignore 済みです。本番は `npx wrangler secret put <名前>` で登録します。
+GEMINI_API_KEY=
+ADMIN_USER=admin
+ADMIN_PASSWORD=change-me-to-a-long-password
+# PAGESPEED_API_KEY=
+# RESEND_API_KEY=
+APP_URL=http://localhost:8787

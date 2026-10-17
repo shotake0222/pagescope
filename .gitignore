@@ -1,0 +1,11 @@
+node_modules/
+.wrangler/
+.dev.vars
+.env
+*.log
+# ビルド成果物（npm run build で生成）
+public/assets/app.css
+public/assets/diff.min.js
+# 移行用の書き出しファイル（個人情報を含むためコミットしない）
+migration-data/
+*.export.sql
