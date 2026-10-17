@@ -37,7 +37,9 @@ app.onError((err, c) => {
 });
 
 export default {
-  fetch: app.fetch,
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    return app.fetch(request, env, ctx);
+  },
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext) {
     ctx.waitUntil(runScheduledPatrol(env));
   },
