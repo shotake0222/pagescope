@@ -231,7 +231,7 @@ export const SharePage: FC<{ r: ShareReport; demo: boolean; loggedIn: boolean }>
 
       <footer class="no-print text-center py-10 text-[11px] text-slate-600">
         🔍 LPのサイレント修正を24時間自動パトロール：
-        <a href="/" class="text-emerald-500 hover:underline">PageScope.online</a>
+        <a href="/" class="text-emerald-500 hover:underline">PageScope</a>
       </footer>
     </Layout>
   );

@@ -3,7 +3,7 @@ import { Icon, Layout, LogoMark, Wordmark } from './layout';
 
 /** ログイン後画面の共通ヘッダー */
 export const AppShell: FC<{ title: string; email: string; active: 'dashboard' | 'settings'; actions?: Child; children?: Child }> = (p) => (
-  <Layout title={`${p.title} - PageScope.online`} noindex bodyClass="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-emerald-500/30 overflow-x-hidden">
+  <Layout title={`${p.title} - PageScope`} noindex bodyClass="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-emerald-500/30 overflow-x-hidden">
     <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3.5 sm:px-6 shadow-xl shadow-slate-900/50">
       <div class="max-w-7xl mx-auto flex justify-between items-center h-12 gap-3">
         <a href="/dashboard" class="flex items-center gap-3 min-w-0">

@@ -20,7 +20,7 @@ const SearchLogo: FC<{ big?: boolean }> = ({ big }) => (
 
 const Brand: FC<{ big?: boolean }> = ({ big }) => (
   <span class={`font-logo ${big ? 'text-3xl sm:text-4xl' : 'text-xl'} font-extrabold tracking-tight text-white`}>
-    PageScope<span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">.online</span>
+    Page<span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-lime-300">Scope</span>
   </span>
 );
 
@@ -320,7 +320,7 @@ export const LandingPage: FC<{ appUrl: string; formspreeId: string; loggedIn: bo
             <a href="#" class="text-slate-500 hover:text-slate-300 transition">プライバシーポリシー</a>
             <a href="#" class="text-slate-500 hover:text-slate-300 transition">特定商取引法に基づく表記</a>
           </div>
-          <p class="text-slate-600 text-xs">&copy; {new Date().getFullYear()} PageScope.online All Rights Reserved.</p>
+          <p class="text-slate-600 text-xs">&copy; {new Date().getFullYear()} PageScope All Rights Reserved.</p>
         </div>
       </footer>
     </Layout>

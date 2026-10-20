@@ -1,4 +1,4 @@
-# PageScope.online（Cloudflare 版）
+# PageScope（Cloudflare 版）
 
 競合 LP のサイレント修正を自動パトロールし、AI（Gemini）が変更点と戦略的意図を要約する SaaS です。
 Xserver（PHP + MySQL + cron）で動いていた旧版を、**Cloudflare Workers** だけで動く構成に作り直しました。

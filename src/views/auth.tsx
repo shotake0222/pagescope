@@ -8,7 +8,7 @@ const primaryBtn =
   'w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl text-sm transition active:scale-[0.99]';
 
 const Card: FC<{ title: string; sub?: string; error?: string; success?: Child; children?: Child }> = (p) => (
-  <Layout title={`${p.title} - PageScope.online`} noindex bodyClass="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4 antialiased">
+  <Layout title={`${p.title} - PageScope`} noindex bodyClass="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4 antialiased">
     <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
       <div class="text-center mb-8">
         <a href="/">

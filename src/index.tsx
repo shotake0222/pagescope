@@ -1,5 +1,5 @@
 /**
- * PageScope.online — Cloudflare Workers 版エントリーポイント
+ * PageScope — Cloudflare Workers 版エントリーポイント
  *   fetch     : Web 画面 / API（Hono）
  *   scheduled : Cron Trigger による自動パトロール
  */

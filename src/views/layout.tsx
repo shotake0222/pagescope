@@ -48,7 +48,7 @@ export const LogoMark: FC<{ size?: 'sm' | 'md' }> = ({ size = 'md' }) => (
 
 export const Wordmark: FC<{ class?: string }> = (p) => (
   <span class={`font-logo font-extrabold tracking-tight text-white ${p.class ?? 'text-lg'}`}>
-    PageScope<span class="text-emerald-400">.online</span>
+    Page<span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-lime-300">Scope</span>
   </span>
 );
 
